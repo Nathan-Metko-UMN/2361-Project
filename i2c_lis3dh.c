@@ -65,22 +65,6 @@ static uint8_t i2c_read(uint8_t ack) {
 // Public Functions (Exposed in .h)
 // =====================================================================
 
-void i2c_lis3dh_init(void) {
-    // Disable I2C to configure it safely
-    I2C1CONbits.I2CEN = 0;
-    
-    // Set I2C Baud Rate. Formula: I2C1BRG = (FCY / Fscl - FCY / 10,000,000) - 1
-    // For FCY = 16MHz and Fscl = 100kHz (Standard I2C speed):
-    // I2C1BRG = (16,000,000 / 100,000) - 1.6 - 1 = 157.4 -> 157
-    I2C1BRG = 157; 
-    
-    // Clear Interrupt Flags
-    IFS1bits.MI2C1IF = 0;
-    
-    // Enable I2C Module
-    I2C1CONbits.I2CEN = 1;
-}
-
 int32_t platform_write(void *handle, uint8_t reg, const uint8_t *bufp, uint16_t len) {
     // LIS3DH Multi-byte write requires the MSB of the register address to be set to 1
     if (len > 1) {

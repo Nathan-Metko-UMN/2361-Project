@@ -20,9 +20,6 @@ extern "C" {
 #define LIS3DH_I2C_WRITE 0x30  // (0x18 << 1) | 0
 #define LIS3DH_I2C_READ  0x31  // (0x18 << 1) | 1
 
-// Initializes the I2C1 hardware peripheral
-void i2c_lis3dh_init(void);
-
 // ST Platform Interface Functions (mapped to stm32dev_ctx_t)
 int32_t platform_write(void *handle, uint8_t reg, const uint8_t *bufp, uint16_t len);
 int32_t platform_read(void *handle, uint8_t reg, uint8_t *bufp, uint16_t len);
