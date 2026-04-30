@@ -109,6 +109,14 @@ bool receiveMessage(char* messageBuffer, uint8_t* senderId, int16_t* signalStren
     return false;
 }
 
+struct AccelData
+{
+    float x;
+    float y;
+    float z;
+};
+
+
 int main(void) {
     CLKDIVbits.RCDIV = 0; 
     
@@ -122,7 +130,9 @@ int main(void) {
         char rx_buffer[50]; 
         uint8_t senderId;
         int16_t signalStrength;
-        bool recived = receiveMessage(rx_buffer,&senderId,&signalStrength);
+
+        struct AccelData accel_data;
+        bool recived = receiveMessage(&accel_data,&senderId,&signalStrength);
         if(recived){
             LATBbits.LATB5 = (rx_buffer[0] == '1') ? 1 : 0; // Turn OFF
         }
