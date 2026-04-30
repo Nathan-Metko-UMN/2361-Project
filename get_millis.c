@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 /* 
  * File:   get_millis.c
  * Author: natha
@@ -5,6 +6,8 @@
  * Created on April 17, 2026, 5:16 PM
  */
 
+=======
+>>>>>>> 26ebaea92124e1c2927101cab310b0e937cf297f
 #include <xc.h>
 #include "get_millis.h"
 

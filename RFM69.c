@@ -351,13 +351,21 @@ void maybeInterrupts() {
 
 // Enable SPI transfer (CS is Pin 25 / RB14)
 void select() {
+<<<<<<< HEAD
     LATBbits.LATB14 = 0; // Pull CS Low
+=======
+    LATBbits.LATB12 = 0; // Pull CS Low
+>>>>>>> 26ebaea92124e1c2927101cab310b0e937cf297f
     IEC0bits.INT0IE = 0; // Disable INT0 (Replaces cli())
 }
 
 // Disable SPI transfer (CS is Pin 25 / RB14)
 void unselect() {
+<<<<<<< HEAD
     LATBbits.LATB14 = 1; // Pull CS High
+=======
+    LATBbits.LATB12 = 1; // Pull CS High
+>>>>>>> 26ebaea92124e1c2927101cab310b0e937cf297f
     maybeInterrupts();
 }
 
