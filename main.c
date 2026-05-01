@@ -6,6 +6,10 @@
 
 #include "spi_lib.h"
 #include "RFM69.h"
+#include "driver_DOGS104.h"
+#include "get_millis.h"
+#include "led.h"
+
 
 #ifndef FCY
 #define FCY 16000000UL
@@ -93,7 +97,6 @@ bool receiveMessage(char* messageBuffer, uint8_t* senderId, int16_t* signalStren
     if (receiveDone()) {
         
         memcpy(messageBuffer, (void*)DATA, DATALEN);
-        messageBuffer[DATALEN] = '\0'; // Null-terminate to make it a safe string
         
         *senderId = SENDERID;
         *signalStrength = RSSI;
@@ -109,6 +112,79 @@ bool receiveMessage(char* messageBuffer, uint8_t* senderId, int16_t* signalStren
     return false;
 }
 
+
+///
+/// LCD CODE
+///
+
+typedef struct {
+    
+} i2c_ctx_t;
+
+void i2c_init(void)
+{
+    I2C1CON = 0;
+    I2C1RCV = 0;
+    I2C1TRN = 0;
+    I2C1BRG = 156;
+
+    I2C1CONbits.I2CEN = 1;
+}
+
+void pin_init(void)
+{
+    CLKDIVbits.RCDIV = 0;       
+    AD1PCFG = 0x9FFF;
+    
+    TRISBbits.TRISB6 = 0;
+    LATBbits.LATB6 = 1;
+}
+
+void I2C1_WRITE(uint8_t byte)
+{
+    I2C1TRN = byte;
+    while (I2C1STATbits.TRSTAT);
+}
+
+static dogs104_err_t write(void *ctx, const uint8_t *buf, size_t len)
+{
+    (void) ctx;
+    
+    I2C1CONbits.SEN = 1;                        //START
+    while (I2C1CONbits.SEN);
+    
+    I2C1_WRITE((ADDRESS << 1) | 0x00);
+    
+    for (size_t i = 0; i < len; ++i) {      //Start 
+        I2C1_WRITE(buf[i]);
+        if (I2C1STATbits.ACKSTAT) {
+            I2C1CONbits.PEN = 1;
+            while (I2C1CONbits.PEN);
+            return DOGS104_ERR_IO;
+        }
+    }
+    
+    I2C1CONbits.PEN = 1;                        //STOP
+    while (I2C1CONbits.PEN);
+    
+    return DOGS104_OK;
+}
+
+static void set_rst(void *ctx, bool high)
+{
+    (void) ctx;
+    LATBbits.LATB6 = high ? 1 : 0;
+}
+
+//static void delay_ms(void *ctx, uint32_t ms)
+//{
+//    (void) ctx;
+//    __delay_ms(ms);
+//}
+
+static dogs104_handle_t hand;
+
+
 struct AccelData
 {
     float x;
@@ -120,13 +196,42 @@ struct AccelData
 int main(void) {
     CLKDIVbits.RCDIV = 0; 
     
+    pin_init();
+    i2c_init();
+    dogs104_handle_t lcd = {
+        .write   = write,
+        .set_rst = set_rst,
+        .delay_ms = delay_ms,
+        .ctx      = &hand,
+        .i2c_addr = ADDRESS,
+    };
+    
+    if (dogs104_init(&lcd) != DOGS104_OK) {
+        while (1);
+    }
+    dogs104_cmd(&lcd, 0x01);
+    delay_ms(NULL, 50);
+    
+    ///
+    /// LED
+    ///
+    led_init();
+    led_allOff();
+    ///
+    ///
+    ///
+
+
+    
     setup();
     spi_init();
     millis_init();
     reset_radio();
     rfm69_init(FREQUENCY, MY_NODE_ID, NETWORK_ID);
+    
+    char line[17];
                 
-    while(1) {
+    while(1) {        
         char rx_buffer[50]; 
         uint8_t senderId;
         int16_t signalStrength;
@@ -134,8 +239,32 @@ int main(void) {
         struct AccelData accel_data;
         bool recived = receiveMessage(&accel_data,&senderId,&signalStrength);
         if(recived){
-            LATBbits.LATB5 = (rx_buffer[0] == '1') ? 1 : 0; // Turn OFF
+            LATBbits.LATB5 = !LATBbits.LATB5;
+            
+            led_showAccelBall((int16_t)accel_data.y,
+                  (int16_t)accel_data.x,
+                  (int16_t)accel_data.z);
+
+        
+            sprintf(line, "ID%-0d SS%-4d", senderId, signalStrength);
+            dogs104_set_cursor(&lcd, 0, 0);
+            dogs104_puts(&lcd, line);
+
+            // Line 2: Use padding (e.g., %-5d) to clear old digits
+            sprintf(line, "x = %.1f", accel_data.x);
+            dogs104_set_cursor(&lcd, 1, 0);
+            dogs104_puts(&lcd, line);
+
+            // Line 3
+            sprintf(line, "y = %.1f", accel_data.y);
+            dogs104_set_cursor(&lcd, 2, 0);
+            dogs104_puts(&lcd, line);
+
+            // Line 4
+            sprintf(line, "z = %.1f", accel_data.z);
+            dogs104_set_cursor(&lcd, 3, 0);
+            dogs104_puts(&lcd, line);   
+            LATBbits.LATB5 = !LATBbits.LATB5;
         }
-        for(long i=0; i<150000; i++);
     }
 }
