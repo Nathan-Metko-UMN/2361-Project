@@ -58,6 +58,8 @@ static uint8_t i2c_read(uint8_t ack) {
     I2C1CONbits.ACKEN = 1;     // Initiate Acknowledge sequence
     while(I2C1CONbits.ACKEN);  // Wait for ACK to complete
     
+    IFS1bits.MI2C1IF = 0;
+    
     return data;
 }
 

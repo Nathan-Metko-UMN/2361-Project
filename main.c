@@ -11,6 +11,7 @@
 #include "spi_lib.h"
 #include "RFM69.h"
 
+
 #ifndef FCY
 #define FCY 16000000UL
 #endif
@@ -166,6 +167,8 @@ int main(void) {
     lis3dh_data_rate_set(&dev_ctx, LIS3DH_ODR_100Hz);
     lis3dh_operating_mode_set(&dev_ctx, LIS3DH_HR_12bit);
     lis3dh_full_scale_set(&dev_ctx, LIS3DH_2g);
+    lis3dh_high_pass_int_conf_set(&dev_ctx, LIS3DH_DISC_FROM_INT_GENERATOR);
+    lis3dh_high_pass_bandwidth_set(&dev_ctx, LIS3DH_STRONG);    
     
     bool on = false;
     while(1) {
@@ -186,28 +189,8 @@ int main(void) {
 
             transmitMessage(2, &accel_data, sizeof(accel_data));
 
-            float roll_rad = atan2(accel_data.y, accel_data.z);
-            float pitch_rad = atan2(accel_data.x, accel_data.z);//atan2(-acceleration_mg[0], sqrt((acceleration_mg[1] * acceleration_mg[1]) + (acceleration_mg[2] * acceleration_mg[2])));
-
-            char tx_buffer[50]; 
-
-            float roll_deg = roll_rad * (180.0f / PI);
-            pitch_deg = pitch_rad * (180.0f / PI);
-
-
-            // sprintf(tx_buffer, "Roll: %d\r\n", (int)roll_deg);
-            // raw_print(tx_buffer);
-
-            // sprintf(tx_buffer, "Pitch: %d\r\n", (int)pitch_deg);
-            // raw_print(tx_buffer);            
-            // LATBbits.LATB5 = 0; // Turn OFF
-        }
-        char led[2];
-        led[0] = on ? '1' : '0';
-        led[1] = '\0'; 
-        transmitMessage(2, &led, sizeof(led));
-        on = on ? false : true;
-        
-        __delay_ms(400); 
+             LATBbits.LATB5 = 0; // Turn OFF
+        }        
+        __delay_ms(10); 
     }
 }
