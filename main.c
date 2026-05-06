@@ -163,19 +163,17 @@ int main(void) {
     // raw_print("LIS3DH Found! Starting loop...\r\n");
 
     // Configure the sensor
-    lis3dh_block_data_update_set(&dev_ctx, PROPERTY_ENABLE);
-    lis3dh_data_rate_set(&dev_ctx, LIS3DH_ODR_100Hz);
-    lis3dh_operating_mode_set(&dev_ctx, LIS3DH_HR_12bit);
-    lis3dh_full_scale_set(&dev_ctx, LIS3DH_2g);
-    lis3dh_high_pass_int_conf_set(&dev_ctx, LIS3DH_DISC_FROM_INT_GENERATOR);
-    lis3dh_high_pass_bandwidth_set(&dev_ctx, LIS3DH_STRONG);    
+    lis3dh_block_data_update_set(&dev_ctx, PROPERTY_ENABLE); // output registers are not updated until both MSB and LSB of the sample have been read, preventing the reading of fragmented data between cycles.
+    lis3dh_data_rate_set(&dev_ctx, LIS3DH_ODR_100Hz); // samples acceleration data at a frequency of 100 Hz
+    lis3dh_operating_mode_set(&dev_ctx, LIS3DH_HR_12bit); // High-Resolution mode, providing 12-bit data precision
+    lis3dh_full_scale_set(&dev_ctx, LIS3DH_2g); // sets the full-scale range to ∓2g, providing the highest sensitivity for low-acceleration applications.
     
     bool on = false;
     while(1) {
         LATBbits.LATB5 = 1; // Turn ON
                     
         uint8_t dataready;
-        lis3dh_xl_data_ready_get(&dev_ctx, &dataready);
+        lis3dh_xl_data_ready_get(&dev_ctx, &dataready); //Returns 1 if data is ready to be sampled.
         float pitch_deg=100;
         if (dataready) {
             int16_t data_raw_acceleration[3];

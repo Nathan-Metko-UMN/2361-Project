@@ -397,6 +397,5 @@ void __attribute__((interrupt, no_auto_psv)) _INT0Interrupt(void) {
     RSSI = readRSSI(0);
     inISR = 0;
     
-    // CRITICAL: Clear the PIC24 Interrupt Flag
     IFS0bits.INT0IF = 0; 
 }
