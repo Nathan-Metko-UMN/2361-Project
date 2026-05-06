@@ -250,17 +250,14 @@ int main(void) {
             dogs104_set_cursor(&lcd, 0, 0);
             dogs104_puts(&lcd, line);
 
-            // Line 2: Use padding (e.g., %-5d) to clear old digits
             sprintf(line, "x = %.1f", accel_data.x);
             dogs104_set_cursor(&lcd, 1, 0);
             dogs104_puts(&lcd, line);
 
-            // Line 3
             sprintf(line, "y = %.1f", accel_data.y);
             dogs104_set_cursor(&lcd, 2, 0);
             dogs104_puts(&lcd, line);
 
-            // Line 4
             sprintf(line, "z = %.1f", accel_data.z);
             dogs104_set_cursor(&lcd, 3, 0);
             dogs104_puts(&lcd, line);   
