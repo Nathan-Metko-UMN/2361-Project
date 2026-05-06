@@ -101,6 +101,12 @@ static void set_rst(void *ctx, bool high)
     LATBbits.LATB6 = high ? 1 : 0;
 }
 
+static void set_rs(void *ctx, bool high)
+{
+    (void) ctx;
+    LATBbits.LATB5 = high ? 1 : 0;
+}
+
 static void delay_ms(void *ctx, uint32_t ms)
 {
     (void) ctx;
@@ -111,55 +117,64 @@ static dogs104_handle_t hand;
 
 int main(void)
 {
+    //Initlizae your own pins and i2c or SPI depending on what user wants to use
     pin_init();
     i2c_init();
+    
+    //initlizae LCD with its address and with functions relevent
     dogs104_handle_t lcd = {
         .write   = write,
         .set_rst = set_rst,
+        .set_rs = set_rs,
         .delay_ms = delay_ms,
         .ctx      = &hand,
         .i2c_addr = ADDRESS,
     };
     
-    if (dogs104_init(&lcd) != DOGS104_OK) {
+    //Example of user defined character of a gumball machine
+    const uint8_t bitmap[8] = {
+        0b10001,
+        0b01110,
+        0b10001,
+        0b10001,
+        0b01110,
+        0b10001,
+        0b10001,
+    };
+    
+    //Check if functions are all set up and good
+    if (dogs104_standard_init(&lcd) != DOGS104_OK) {
         while (1);
     }
-    dogs104_cmd(&lcd, 0x01);
-    delay_ms(NULL, 50);
+    dogs104_clear(&lcd);
     
-    int a = 0;
-    int b = 4;
-    int c = 16;
+    //Initlize lines and varibles youd like to use 
+    int result = 50;
     char line1[16];
     char line2[16];
     char line3[16];
     char line4[16];
     
+    //Example of printing out strings
+    line1 = "F=";
+
+    dogs104_set_cursor(&lcd, 0, 0);
+    dogs104_puts(&lcd, line1);
     
+    //Example of printing out custom chars
+    dogs104_set_cursor(&lcd, 1, 0);
+    dogs104_create_char(&lcd, 0, bitmap);
+    dogs104_puts(&my_lcd, "\x00");
+    
+    //Printf example
     while(1) {
-        int result = (a * 2 + b * 2 + c * 2);
+        dogs104_printf("%d", result);
+        dogs104_set_cursor(&lcd, 0, 2);
         
-        sprintf(line1, "F=%d", result);
-        dogs104_set_cursor(&lcd, 0, 0);
-        dogs104_puts(&lcd, line1);
-        
-        sprintf(line2, "x=%d", a);
-        dogs104_set_cursor(&lcd, 1, 0);
-        dogs104_puts(&lcd, line2);
-        
-        
-        sprintf(line3, "y=%d", b);
-        dogs104_set_cursor(&lcd, 2, 0);
-        dogs104_puts(&lcd, line3);
-        
-        sprintf(line4, "z=%d", c);
-        dogs104_set_cursor(&lcd, 3, 0);
-        dogs104_puts(&lcd, line4);
-        
-        a += 1;
+        result += 4;
         
         delay_ms(NULL, 250);
     }
-    return -1;
+    return 0;
 }
 

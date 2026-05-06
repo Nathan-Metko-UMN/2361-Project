@@ -5,6 +5,8 @@
  *IMPORTANT NOTE I TOOK THE VERY NICELY WRITTEN REGSITERS FROM
  * "https://github.com/sstaub/SSD1803A_I2C/tree/main"
  *  
+ * printf code is heavily based on this stackoverflow post
+ * https://stackoverflow.com/questions/1735236/how-to-write-my-own-printf-in-c
  */
 
 #ifndef DRIVER_DOGS104_H
@@ -13,6 +15,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include <stdarg.h>   
     
 
 #define ADDRESS 0b00111100
@@ -108,15 +111,19 @@ typedef struct dogs104_handle_s
 {
     dogs104_err_t (*write)(void *ctx, uint8_t *buf, size_t len);
     void    (*set_rst)(void *ctx, bool high);
+    void    (*set_rs)(void *ctx, bool high);
     void    (*delay_ms)(void *ctx, uint32_t ms);
     
     void *ctx;
-    uint8_t i2c_addr;  // 0x3C or 0x3D depending on SA0 pin
+    uint8_t i2c_addr;
+    uint8_t viewangle;
+    uint8_t contrast;
 } dogs104_handle_t;
 
 // Lifecycle
-dogs104_err_t dogs104_init(dogs104_handle_t *handle);
+dogs104_err_t dogs104_standard_init(dogs104_handle_t *handle);
 dogs104_err_t dogs104_reset(dogs104_handle_t *handle);
+dogs104_err_t dogs104_clear(dogs104_handle_t *handle);
 
 //Write by i2c
 dogs104_err_t dogs104_cmd(dogs104_handle_t *handle, uint8_t cmd);
@@ -127,10 +134,18 @@ dogs104_err_t dogs104_set_cursor(dogs104_handle_t *handle, uint8_t col, uint8_t 
 
 // Writing
 dogs104_err_t dogs104_puts(dogs104_handle_t *handle, const char *str);
+dogs104_err_t dogs104_printf(char *format, ...);
+dogs104_err_t dogs104_putchar(dogs104_handle_t *handle, char c);
 
 // Custom characters
 dogs104_err_t dogs104_create_char(dogs104_handle_t *handle, uint8_t slot, const uint8_t bitmap[8]);
 dogs104_err_t dogs104_write_char(dogs104_handle_t *handle, uint8_t slot);
+
+//view
+dogs104_err_t dogs104_viewing_angle(dogs104_handle_t *handle, bool orientation);
+dogs104_err_t dogs104_set_display_mode(dogs104_handle_t *handle, bool cursor, bool blink);
+dogs104_err_t dogs104_set_constrast(dogs104_handle_t *handle, uint8_t level);
+
 
 #endif	/* DRIVER_DOGS104_H */
 
