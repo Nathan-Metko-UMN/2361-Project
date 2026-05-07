@@ -37,7 +37,7 @@
 #include "RFM69.h"
 #include "get_millis.h"
 
-// Map the library's SPI function to the one we built in spi.c
+// Map the library's SPI function to the one in spi.c
 #define spi_fast_shift spi_transfer 
 
 volatile uint8_t DATALEN;
